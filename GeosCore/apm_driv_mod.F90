@@ -3710,22 +3710,22 @@ CONTAINS
 
     XN4D = 0.D0
 
-    !$OMP PARALLEL DO                             &
-    !$OMP DEFAULT( SHARED                       ) &
-    !$OMP SCHEDULE( DYNAMIC                     ) &
-    !$OMP PRIVATE( I, J, L, N, SIZENUM, XMATEMP )
+    !$OMP PARALLEL DO                                                        &
+    !$OMP DEFAULT( SHARED                                                   )&
+    !$OMP PRIVATE( I, J, L, N, SIZENUM, XMATEMP                             )&
+    !$OMP COLLAPSE( 4                                                       )
+    DO N = 1, NSO4
     DO L = 1, State_Grid%NZ
     DO J = 1, State_Grid%NY
     DO I = 1, State_Grid%NX
+       SIZENUM       = APMIDS%id_SO4BIN1 + N - 1 !Luodebug
+       XMATEMP       = State_Chm%Species(SIZENUM)%Conc(I,J,L)                &
+                     / State_Met%AIRVOL(I,J,L)
+       XMATEMP       = MAX( 1.d-40, XMATEMP )
 
-       ! Should we put the N loop on the outside?
-       DO N = 1, NSO4
-          SIZENUM =APMIDS%id_SO4BIN1+N-1 !Luodebug
-          XMATEMP=State_Chm%Species(SIZENUM)%Conc(I,J,L) / State_Met%AIRVOL(I,J,L)
-          XMATEMP= MAX( 1.d-40, XMATEMP)
-          XN4D(I,J,L,N)=XMATEMP/(DENSULF*VDRY(N))*1.E-9 !XN4D in #/cm3, VDRY in m3
-       ENDDO
-
+       !XN4D in #/cm3, VDRY in m3
+       XN4D(I,J,L,N) = XMATEMP / ( DENSULF * VDRY(N) ) * 1.0d-9
+    ENDDO
     ENDDO
     ENDDO
     ENDDO
