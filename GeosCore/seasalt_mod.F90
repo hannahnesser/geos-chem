@@ -1592,11 +1592,11 @@ CONTAINS
        Spc_ID = Spc_IDs(N)
 
        ! Loop over grid boxes
-       !$OMP PARALLEL DO                                                     &
-       !$OMP DEFAULT( SHARED                                                )&
-       !$OMP PRIVATE( I,    J,        L,          A_M2, FEMIS, FOCEAN       )&
-       !$OMP PRIVATE( NTOP, SCALESST, SFCWINDSQR, SST,  W10M                )&
-       !$OMP COLLAPSE( 2                                                    )
+!       !$OMP PARALLEL DO                                                     &
+!       !$OMP DEFAULT( SHARED                                                )&
+!       !$OMP PRIVATE( I,    J,        L,          A_M2, FEMIS, FOCEAN       )&
+!       !$OMP PRIVATE( NTOP, SCALESST, SFCWINDSQR, SST,  W10M                )&
+!       !$OMP COLLAPSE( 2                                                    )
        DO J = 1, State_Grid%NY
        DO I = 1, State_Grid%NX
 
@@ -1676,7 +1676,7 @@ CONTAINS
           ENDIF
        ENDDO
        ENDDO
-       !$OMP END PARALLEL DO
+!       !$OMP END PARALLEL DO
 
     ENDDO
 
