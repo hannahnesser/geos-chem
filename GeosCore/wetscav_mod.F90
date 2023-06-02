@@ -2849,7 +2849,14 @@ CONTAINS
     ! WASHFRAC_APMSIZE_AEROSOL begins here!
     !=================================================================
 
-    WASHFRAC = 0d0
+    ! Initialize
+    WASHFRAC = 0.0d0
+    PHOUR    = 0.0d0
+    RINUM    = 0.0d0
+    PAR1     = 0.0d0
+    PAR2     = 0.0d0
+    PAR3     = 0.0d0
+
     IF ( TK >= 268d0 ) THEN
        IF ( F > 0d0 ) THEN
 

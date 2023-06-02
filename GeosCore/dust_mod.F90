@@ -198,6 +198,7 @@ CONTAINS
 
        ! Grid box surface area [m2]
        A_M2 = HcoState%Grid%AREA_M2%Val( I, J )
+       E_DST = 0.0_fp
 
        DO N = 1, HcoState%nDust
 
@@ -207,51 +208,50 @@ CONTAINS
           ! Get emissions [kg/m2/s] and convert to [kg/box]
           E_DST = HcoState%Spc(IDDST(N))%Emis%Val(I,J,1) * A_M2 * DTSRCE
 
-          Spc(APMIDS%id_DSTBIN1)%Conc(I,J,1) =                                &
-                                      Spc(APMIDS%id_DSTBIN1)%Conc(I,J,1)      &
-                                      +E_DST*1.5083735055071434d-006
-          Spc(APMIDS%id_DSTBIN1+1)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+1)%Conc(I,J,1)    &
-                                      +E_DST*4.7465319694587000d-005
-          Spc(APMIDS%id_DSTBIN1+2)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+2)%Conc(I,J,1)    &
-                                      +E_DST*6.5459286253814980d-004
-          Spc(APMIDS%id_DSTBIN1+3)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+3)%Conc(I,J,1)    &
-                                      +E_DST*3.6946414378027244d-003
-          Spc(APMIDS%id_DSTBIN1+4)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+4)%Conc(I,J,1)    &
-                                      +E_DST*8.0323357006383631d-003
-          Spc(APMIDS%id_DSTBIN1+5)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+5)%Conc(I,J,1)    &
-                                      +E_DST*1.5922384531190468d-002
-          Spc(APMIDS%id_DSTBIN1+6)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+6)%Conc(I,J,1)    &
-                                      +E_DST*3.7324808601695736d-002
-          Spc(APMIDS%id_DSTBIN1+7)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+7)%Conc(I,J,1)    &
-                                      +E_DST*0.1144517534356116
-          Spc(APMIDS%id_DSTBIN1+8)%Conc(I,J,1)  =                             &
-                                      Spc(APMIDS%id_DSTBIN1+8)%Conc(I,J,1)    &
-                                      +E_DST*0.1880182758312848
-          Spc(APMIDS%id_DSTBIN1+9)%Conc(I,J,1)  =                              &
-                                      Spc(APMIDS%id_DSTBIN1+9)%Conc(I,J,1)    &
-                                      +E_DST*0.2448371224641443
-          Spc(APMIDS%id_DSTBIN1+10)%Conc(I,J,1) =                             &
-                                      Spc(APMIDS%id_DSTBIN1+10)%Conc(I,J,1)   &
-                                      +E_DST*0.1452025570524453
-          Spc(APMIDS%id_DSTBIN1+11)%Conc(I,J,1) =                             &
-                                      Spc(APMIDS%id_DSTBIN1+11)%Conc(I,J,1)   &
-                                      +E_DST*0.1954553759504486
-          Spc(APMIDS%id_DSTBIN1+12)%Conc(I,J,1) =                             &
-                                      Spc(APMIDS%id_DSTBIN1+12)%Conc(I,J,1)   &
-                                      +E_DST*4.0358202390254526d-002
-          Spc(APMIDS%id_DSTBIN1+13)%Conc(I,J,1) =                             &
-                                      Spc(APMIDS%id_DSTBIN1+13)%Conc(I,J,1)   &
-                                      +E_DST*5.2032641469382107d-003
-          Spc(APMIDS%id_DSTBIN1+14)%Conc(I,J,1) =                             &
-                                      Spc(APMIDS%id_DSTBIN1+14)%Conc(I,J,1)   &
-                                      +E_DST*7.2351157743278424d-004
+          Spc(APMIDS%id_DSTBIN1)%Conc(I,J,1)    =                            &
+          Spc(APMIDS%id_DSTBIN1)%Conc(I,J,1)    + E_DST*1.5083735055071434d-6
+
+          Spc(APMIDS%id_DSTBIN1+1)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+1)%Conc(I,J,1)  + E_DST*4.7465319694587000d-5
+
+          Spc(APMIDS%id_DSTBIN1+2)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+2)%Conc(I,J,1)  + E_DST*6.5459286253814980d-4
+
+          Spc(APMIDS%id_DSTBIN1+3)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+3)%Conc(I,J,1)  + E_DST*3.6946414378027244d-3
+
+          Spc(APMIDS%id_DSTBIN1+4)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+4)%Conc(I,J,1)  + E_DST*8.0323357006383631d-3
+
+          Spc(APMIDS%id_DSTBIN1+5)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+5)%Conc(I,J,1)  + E_DST*1.5922384531190468d-2
+
+          Spc(APMIDS%id_DSTBIN1+6)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+6)%Conc(I,J,1)  + E_DST*3.7324808601695736d-2
+
+          Spc(APMIDS%id_DSTBIN1+7)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+7)%Conc(I,J,1)  + E_DST*0.1144517534356116d0
+
+          Spc(APMIDS%id_DSTBIN1+8)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+8)%Conc(I,J,1)  + E_DST*0.1880182758312848d0
+
+          Spc(APMIDS%id_DSTBIN1+9)%Conc(I,J,1)  =                            &
+          Spc(APMIDS%id_DSTBIN1+9)%Conc(I,J,1)  + E_DST*0.2448371224641443d0
+
+          Spc(APMIDS%id_DSTBIN1+10)%Conc(I,J,1) =                            &
+          Spc(APMIDS%id_DSTBIN1+10)%Conc(I,J,1) + E_DST*0.1452025570524453d0
+
+          Spc(APMIDS%id_DSTBIN1+11)%Conc(I,J,1) =                            &
+          Spc(APMIDS%id_DSTBIN1+11)%Conc(I,J,1) + E_DST*0.1954553759504486d0
+
+          Spc(APMIDS%id_DSTBIN1+12)%Conc(I,J,1) =                            &
+          Spc(APMIDS%id_DSTBIN1+12)%Conc(I,J,1) + E_DST*4.0358202390254526d-2
+
+          Spc(APMIDS%id_DSTBIN1+13)%Conc(I,J,1) =                            &
+          Spc(APMIDS%id_DSTBIN1+13)%Conc(I,J,1) + E_DST*5.2032641469382107d-3
+
+          Spc(APMIDS%id_DSTBIN1+14)%Conc(I,J,1) =                            &
+          Spc(APMIDS%id_DSTBIN1+14)%Conc(I,J,1) + E_DST*7.2351157743278424d-4
        ENDDO
 
     ENDDO
@@ -1041,8 +1041,7 @@ CONTAINS
     !$OMP DEFAULT( SHARED ) &
     !$OMP PRIVATE( I, J, L, N, K, DEN, REFF, DP )       &
     !$OMP PRIVATE( CONST, VTS, TEMP, P, PDP, SLIP )     &
-    !$OMP PRIVATE( MASS, OLD, VISC, TC0, DELZ, DELZ1  ) &
-    !$OMP SCHEDULE( DYNAMIC )
+    !$OMP PRIVATE( MASS, OLD, VISC, TC0, DELZ, DELZ1  )
     DO J = 1, State_Grid%NY
     DO I = 1, State_Grid%NX
 
