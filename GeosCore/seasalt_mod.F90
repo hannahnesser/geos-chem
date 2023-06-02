@@ -1572,51 +1572,54 @@ CONTAINS
     INTEGER                :: I,     J,      L,      N
     INTEGER                :: NTOP
     INTEGER                :: Spc_ID
-    REAL*8                 :: W10M,  DTEMIS
-    REAL*8                 :: FEMIS, A_M2, SST, SCALESST
-    REAL*8                 :: SALT(State_Grid%NX,State_Grid%NY)
-
-    ! Increment of radius for Emission integration (um)
-    REAL*8, PARAMETER      :: BETHA = 1.d0
-
-    ! External functions
-    REAL(fp)               :: SFCWINDSQR, FOCEAN
+    REAL(f8)               :: W10M,  DTEMIS
+    REAL(f8)               :: FEMIS, A_M2, SST, SCALESST
+    REAL(f8)               :: SALT(State_Grid%NX,State_Grid%NY)
+    REAL(f8)               :: SFCWINDSQR, FOCEAN
 
     !=================================================================
     ! SRCSALT begins here!
     !=================================================================
+
     ! Emission timestep [s]
     DTEMIS = GET_TS_CHEM()
+    Spc_id = 0
 
-    DO N=1,NSALTBIN
-       SALT = 0d0
+    DO N = 1, NSALTBIN
+
+       ! Zero
+       SALT   = 0.0_f8
        Spc_ID = Spc_IDs(N)
 
-       !$OMP PARALLEL DO       &
-       !$OMP DEFAULT( SHARED ) &
-       !$OMP PRIVATE( I, J, A_M2, W10M, FOCEAN, SFCWINDSQR, SST, SCALESST ) &
-       !$OMP SCHEDULE( DYNAMIC )
-
        ! Loop over grid boxes
+       !$OMP PARALLEL DO                                                     &
+       !$OMP DEFAULT( SHARED                                                )&
+       !$OMP PRIVATE( I,    J,        L,          A_M2, FEMIS, FOCEAN       )&
+       !$OMP PRIVATE( NTOP, SCALESST, SFCWINDSQR, SST,  W10M                )&
+       !$OMP COLLAPSE( 2                                                    )
        DO J = 1, State_Grid%NY
        DO I = 1, State_Grid%NX
 
-          ! Initialize
-          SFCWINDSQR = 0.0_fp
-          W10M       = 0.0_fp
-          SST        = 0.0_fp
-          SCALESST   = 0.0_fp
+          ! Zero private loop variables
           A_M2       = State_Grid%AREA_M2(I,J)
+          FEMIS      = 0.0_f8
+          FOCEAN     = 0.0_f8
+          NTOP       = CEILING( State_Met%PBL_TOP_L(I,J) )
+          SCALESST   = 0.0_f8
+          SFCWINDSQR = 0.0_f8
+          SST        = 0.0_f8
+          W10M       = 0.0_f8
 
           ! Check if over ocean assuming only gridcells that are
           ! at least 50% water are oceans (J. Pierce, 3/10/14)
           IF ( State_Met%IsWater(I,J) ) THEN
-             FOCEAN = 1e+0_fp - State_Met%FRCLND(I,J)
-          ELSE
-             FOCEAN = 0.e+0_fp
+             FOCEAN = 1.0_f8 - State_Met%FRCLND(I,J)
           ENDIF
 
-          IF ( FOCEAN > 0.5e+0_fp ) THEN
+          !=================================================================
+          ! Compute sea salt emissions only if the box is over ocean
+          !=================================================================
+          IF ( FOCEAN > 0.5_f8 ) THEN
 
              ! Wind speed at 10 m altitude [m/s]
              SFCWINDSQR = State_Met%U10M(I,J)**2 + State_Met%V10M(I,J)**2
@@ -1624,63 +1627,53 @@ CONTAINS
 
              ! Loop over size bins
              IF ( IFSSTSCALE==1 ) THEN
+
                 ! Sea surface temperature in Celsius (jaegle 5/11/11)
-                SST = State_Met%TSKIN(I,J) - 273.15d0
+                SST = State_Met%TSKIN(I,J) - 273.15_f8
 
                 ! Limit SST to 0-30C range
                 ! Yu adjust per disc with Gan SST = MAX( SST , 0d0 )
                 !  ! limit to  0C
-                SST = MAX( SST, 5d0  ) ! limit to  0C
-                SST = MIN( SST, 30d0 ) ! limit to 30C
+                SST = MAX( SST, 5.0_f8  ) ! limit to  0C
+                SST = MIN( SST, 30.0_f8 ) ! limit to 30C
 
                 ! Empirical SST scaling factor (jaegle 5/11/11)
-                SCALESST = 0.329d0 + 0.0904d0*SST - &
-                           0.00717d0*SST**2d0 + 0.000207d0*SST**3d0
-
+                SCALESST = 0.329_f8                                          &
+                         + ( 0.0904_f8   * SST             )                 &
+                         - ( 0.00717_f8  * SST * SST       )                 &
+                         + ( 0.000207_f8 * SST * SST * SST ) 
+ 
                 ! Update seasalt source into SALT [kg]
                 ! DFMSALT9: Sea-salt mass flux dFM (kg m-2 s-1)
                 ! at U10 = 9 m/s
-                SALT(I,J)   = SALT(I,J) + &
-                  DFMSALT9(N)*(W10M/9.0)**3.41d0 *A_M2* DTEMIS*FOCEAN*SCALESST
+                SALT(I,J) = SALT(I,J)   +                                    &
+                            DFMSALT9(N) * (W10M/9.0_f8)**3.41_f8 * A_M2 *    &
+                            DTEMIS      * FOCEAN                 * SCALESST
              ELSE
+
                 ! Update seasalt source into SALT [kg]
                 ! DFMSALT9: Sea-salt mass flux dFM (kg m-2 s-1)
                 ! at U10 = 9  m/s
-                SALT(I,J)   = SALT(I,J) + &
-                  DFMSALT9(N)*(W10M/9.0)**3.41d0 *A_M2* DTEMIS*FOCEAN
+                SALT(I,J) = SALT(I,J) +                                      &
+                            DFMSALT9(N) * (W10M/9.0_f8)**3.41_f8 * A_M2 *    &
+                            DTEMIS      * FOCEAN
+
              ENDIF
 
+             !=================================================================
+             ! Now partition seasalt emissions through boundary layer
+             !=================================================================
+             DO L = 1, NTOP
+
+                ! Fraction of the PBL spanned by box (I,J,L) [unitless]
+                FEMIS = State_Met%F_OF_PBL(I,J,L)
+
+                ! Add seasalt emissions into box (I,J,L) [kg]
+                State_Chm%Species(Spc_ID)%Conc(I,J,L) = &
+                State_Chm%Species(Spc_ID)%Conc(I,J,L) + ( FEMIS * SALT(I,J) )
+
+             ENDDO
           ENDIF
-
-       ENDDO
-       ENDDO
-       !$OMP END PARALLEL DO
-
-       !=================================================================
-       ! Now partition seasalt emissions through boundary layer
-       !=================================================================
-       !$OMP PARALLEL DO       &
-       !$OMP DEFAULT( SHARED ) &
-       !$OMP PRIVATE( I, J, NTOP, L, FEMIS ) &
-       !$OMP SCHEDULE( DYNAMIC )
-       DO J = 1, State_Grid%NY
-       DO I = 1, State_Grid%NX
-
-          ! Layer in which the PBL top occurs
-          NTOP = CEILING( State_Met%PBL_TOP_L(I,J) )
-
-          ! Loop thru the boundary layer
-          DO L = 1, NTOP
-
-             ! Fraction of the PBL spanned by box (I,J,L) [unitless]
-             FEMIS = State_Met%F_OF_PBL(I,J,L)
-
-             ! Add seasalt emissions into box (I,J,L) [kg]
-             State_Chm%Species(Spc_ID)%Conc(I,J,L) = &
-                   State_Chm%Species(Spc_ID)%Conc(I,J,L) + FEMIS * SALT(I,J)
-
-          ENDDO
-
        ENDDO
        ENDDO
        !$OMP END PARALLEL DO
@@ -1795,12 +1788,14 @@ CONTAINS
     IDTEMP1 = APMIDS%id_SEABIN1
     IDTEMP2 = APMIDS%id_SEABIN1+NSEA-1
 
-    !$OMP PARALLEL DO       &
-    !$OMP DEFAULT( SHARED ) &
-    !$OMP PRIVATE( I, J, L, N, K, DEN, REFF, DP )       &
-    !$OMP PRIVATE( CONST, VTS, TEMP, P, PDP, SLIP )     &
-    !$OMP PRIVATE( MASS, OLD, VISC, TC0, DELZ, DELZ1  ) &
-    !$OMP SCHEDULE( DYNAMIC )
+! Comment out parallelization to get parallel tests to pass
+!  -- Bob Yantosca (02 Jun 2023)
+!    !$OMP PARALLEL DO                                                        &
+!    !$OMP DEFAULT( SHARED                                                   )&
+!    !$OMP PRIVATE( I,    J,     L,    N,    K,    DEN,   REFF               )&
+!    !$OMP PRIVATE( DP,   CONST, VTS,  TEMP, P,    PDP,   SLIP               )&
+!    !$OMP PRIVATE( MASS, OLD,   VISC, TC0,  DELZ, DELZ1                     )&
+!    !$OMP COLLAPSE( 2                                                       )
     DO J = 1, State_Grid%NY
     DO I = 1, State_Grid%NX
 
@@ -1833,16 +1828,15 @@ CONTAINS
 
        ! Loop over aerosol bins
        DO N = 1, NSEA
-
           DO L = 1, State_Grid%NZ
-
              TC0(L) = Spc(APMIDS%id_SEABIN1+N-1)%Conc(I,J,L)
-
+             VTS(L) = 0.D0
+          
              IF(TC0(L)>1.D-30)THEN
                 ! Initialize
                 DEN   = DENWET3D(I,J,L,2)*1.d3
                 REFF  = RSALT(N)*GFTOT3D(I,J,L,2)
-
+             
                 DP    = 2D0 * REFF * 1.D6 ! Dp [um] = particle diameter
                 CONST = 2D0 * DEN * REFF**2 * g0 / 9D0
 
@@ -1859,15 +1853,15 @@ CONTAINS
 
                 ! Settling velocity [m/s]
                 VTS(L) = CONST * SLIP / VISC
-             ELSE
-                VTS(L) = 0.D0
              ENDIF
 
           ENDDO
 
           ! Method is to solve bidiagonal matrix
           ! which is implicit and first order accurate in Z
-          L    = State_Grid%NZ
+          L     = State_Grid%NZ
+          DELZ  = 0.0_fp
+          DELZ1 = 0.0_fp
           IF(MASS(L)>1.D-30)THEN
              DELZ = State_Met%BXHEIGHT(I,J,L)
              Spc(APMIDS%id_SEABIN1+N-1)%Conc(I,J,L) = &
@@ -1882,6 +1876,9 @@ CONTAINS
              ENDDO
           ENDIF
 
+          ! Zero DELZ and DELZ1 to avoid parallelization issues
+          DELZ  = 0.0_fp
+          DELZ1 = 0.0_fp
           DO L = State_Grid%NZ-1, 1, -1
              IF((MASS(L)*MASS(L+1))>1.D-30)THEN
                 DELZ  = State_Met%BXHEIGHT(I,J,L)
@@ -1943,7 +1940,7 @@ CONTAINS
 
     ENDDO
     ENDDO
-    !$OMP END PARALLEL DO
+!    !$OMP END PARALLEL DO
 
     ! Clear the pointer
     Spc => NULL()
