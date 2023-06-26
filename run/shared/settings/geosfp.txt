@@ -108,12 +108,24 @@ PFLCU    1 N Y F0;013000 none none PFLCU    ./MetDir/%y4/%m2/GEOSFP.%y4%m2%d2.A3
 PFLLSAN  1 N Y F0;013000 none none PFLLSAN  ./MetDir/%y4/%m2/GEOSFP.%y4%m2%d2.A3mstE.025x03125.nc
 #
 # --- Fixed variables, from constants file ---
-FRLAKE   1 N Y - none none FRLAKE   ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
-FRLAND   1 N Y - none none FRLAND   ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
-FRLANDIC 1 N Y - none none FRLANDIC ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
-FROCEAN  1 N Y - none none FROCEAN  ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+FRLAKE   1   N Y - none none FRLAKE   ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+FRLAND   1   N Y - none none FRLAND   ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+FRLANDIC 1   N Y - none none FRLANDIC ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+FROCEAN  1   N Y - none none FROCEAN  ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+PHIS m2_s-2  N Y - none none PHIS     ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+OCEAN_MASK 1 N Y - none none FROCEAN  ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+
+#==============================================================================
+# --- Fields for lightning emissions (Extension 103) ---
+# These fields are stored in State_Met, along with the other met fields
+#==============================================================================
+FLASH_DENS 1 N Y F0;013000 none none LDENS ./HcoDir/OFFLINE_LIGHTNING/v2020-03/GEOSFP/%y4/FLASH_CTH_GEOSFP_0.25x0.3125_%y4_%m2.nc4
+CONV_DEPTH 1 N Y F0;013000 none none CTH   ./HcoDir/OFFLINE_LIGHTNING/v2020-03/GEOSFP/%y4/FLASH_CTH_GEOSFP_0.25x0.3125_%y4_%m2.nc4
 #
-PHIS m2_s-2 N Y - none none PHIS ./MetDir/2011/01/GEOSFP.20110101.CN.025x03125.nc
+# To utilize climatology lightning fields, comment the two lines above and uncomment these lines
+#FLASH_DENS 1 N Y F0;013000 none none LDENS ./HcoDir/OFFLINE_LIGHTNING/v2020-03/GEOSFP/CLIM/FLASH_CTH_GEOSFP_0.25x0.3125_2014-2019.ymonmean.nc4
+#CONV_DEPTH 1 N Y F0;013000 none none CTH   ./HcoDir/OFFLINE_LIGHTNING/v2020-03/GEOSFP/CLIM/FLASH_CTH_GEOSFP_0.25x0.3125_2014-2019.ymonmean.nc4
+
 """
 
 RUNDIR_MET_EXTDATA_DERIVED_EXPORTS="""
