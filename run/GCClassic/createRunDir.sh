@@ -311,7 +311,8 @@ fi
 printf "${thinline}Choose meteorology source:${thinline}"
 printf "  1. MERRA-2 (Recommended)\n"
 printf "  2. GEOS-FP \n"
-printf "  3. GISS ModelE2.1 (GCAP 2.0)\n"
+printf "  3. GEOS-IT\n"
+printf "  4. GISS ModelE2.1 (GCAP 2.0)\n"
 
 valid_met=0
 while [ "${valid_met}" -eq 0 ]; do
@@ -319,15 +320,19 @@ while [ "${valid_met}" -eq 0 ]; do
     valid_met=1
     if [[ ${met_num} = "1" ]]; then
 	met="merra2"
-        shared_met_settings=${gcdir}/run/shared/settings/merra2.txt
+	shared_met_settings=${gcdir}/run/shared/settings/merra2.txt
 	RUNDIR_VARS+="RUNDIR_MET_FIELD_CONFIG='HEMCO_Config.rc.gmao_metfields'\n"
     elif [[ ${met_num} = "2" ]]; then
 	met="geosfp"
-        shared_met_settings=${gcdir}/run/shared/settings/geosfp.txt
+	shared_met_settings=${gcdir}/run/shared/settings/geosfp.txt
 	RUNDIR_VARS+="RUNDIR_MET_FIELD_CONFIG='HEMCO_Config.rc.gmao_metfields'\n"
     elif [[ ${met_num} = "3" ]]; then
+	met="geosit"
+	shared_met_settings=${gcdir}/run/shared/settings/geosit.txt
+	RUNDIR_VARS+="RUNDIR_MET_FIELD_CONFIG='HEMCO_Config.rc.gmao_metfields'\n"
+    elif [[ ${met_num} = "4" ]]; then
 	met="ModelE2.1"
-        shared_met_settings=${gcdir}/run/shared/settings/modele2.1.txt
+	shared_met_settings=${gcdir}/run/shared/settings/modele2.1.txt
 	RUNDIR_VARS+="RUNDIR_MET_FIELD_CONFIG='HEMCO_Config.rc.gcap2_metfields'\n"
     else
 	valid_met=0
@@ -628,6 +633,7 @@ if [[ ${met} = "ModelE2.1" ]]; then
     fi
 else
     RUNDIR_VARS+="RUNDIR_GISS_RES='not_used'\n"
+    # Use GEOS-FP values as placeholders for GEOS-IT until parameters derived
     if [[ "x${sim_name}" == "xfullchem" || "x${sim_name}" == "xaerosol" ]]; then
 	if [[ "x${met}" == "xgeosfp" && "x${grid_res}" == "x4x5" ]]; then
 	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='8.3286e-4'\n"
@@ -637,6 +643,10 @@ else
 	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='7.8533e-4'\n"
 	elif [[ "x${met}" == "xmerra2" && "x${grid_res}" == "x2x25" ]]; then
 	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='4.7586e-4'\n"
+	elif [[ "x${met}" == "xgeosit" && "x${grid_res}" == "x4x5" ]]; then
+	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='8.3286e-4'\n"
+	elif [[ "x${met}" == "xgeosit" && "x${grid_res}" == "x2x25" ]]; then
+	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='5.0416e-4'\n"
 	else
 	    RUNDIR_VARS+="RUNDIR_DUSTDEAD_TF='-999.0e0'\n"
 	fi
@@ -650,7 +660,7 @@ fi
 #-----------------------------------------------------------------
 printf "${thinline}Choose number of levels:${thinline}"
 
-if [[ ${met} = "geosfp" ]] || [[ ${met} = "merra2" ]]; then
+if [[ ${met} = "geosfp" ]] || [[ ${met} = "merra2" || ${met} = "geosit" ]]; then
     printf "  1. 72 (native)\n"
     printf "  2. 47 (reduced)\n"
 
@@ -855,7 +865,7 @@ fi
 
 # Create symbolic link to code directory
 ln -s ${wrapperdir} ${rundir}/CodeDir
-ln -s ${wrapperdir}/run/GCHP/runScriptSamples ${rundir}/runScriptSamples
+ln -s ${wrapperdir}/run/GCClassic/runScriptSamples ${rundir}/runScriptSamples
 
 #--------------------------------------------------------------------
 # Navigate to run directory and set up input files
@@ -996,7 +1006,7 @@ fi
 # Copy sample restart file to run directory
 #--------------------------------------------------------------------
 
-if [[ ${met} = "merra2" ]] || [[ ${met} = "geosfp" ]]; then
+if [[ ${met} = "merra2" ]] || [[ ${met} = "geosfp" || "geosit" ]]; then
 
     # Root path for restarts
     # Check the Linux Kernel version to see if we are on the AWS cloud.
